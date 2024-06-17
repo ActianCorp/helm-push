@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	helm.sh/helm/v3 v3.15.1
 	k8s.io/helm v2.17.0+incompatible
 )

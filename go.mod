@@ -5,7 +5,7 @@ go 1.23.2
 require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/spf13/cobra v1.8.1
-	helm.sh/helm/v3 v3.16.2
+	helm.sh/helm/v3 v3.16.4
 	k8s.io/helm v2.17.0+incompatible
 )
 
@@ -101,11 +101,11 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.31.2 // indirect
-	k8s.io/apiextensions-apiserver v0.31.2 // indirect
-	k8s.io/apimachinery v0.31.2 // indirect
-	k8s.io/cli-runtime v0.31.2 // indirect
-	k8s.io/client-go v0.31.2 // indirect
+	k8s.io/api v0.31.3 // indirect
+	k8s.io/apiextensions-apiserver v0.31.3 // indirect
+	k8s.io/apimachinery v0.31.3 // indirect
+	k8s.io/cli-runtime v0.31.3 // indirect
+	k8s.io/client-go v0.31.3 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/utils v0.0.0-20241104163129-6fe5fd82f078 // indirect

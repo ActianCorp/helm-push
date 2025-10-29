@@ -1,6 +1,6 @@
 module github.com/ActianCorp/helm-push
 
-go 1.24.7
+go 1.24.9
 
 require (
 	github.com/ghodss/yaml v1.0.0

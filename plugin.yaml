@@ -4,19 +4,13 @@ name: "cm-push"
 version: "0.10.19"
 runtime: subprocess
 config:
-  usage: cm-push
   longHelp: "Please see https://github.com/ActianCorp/helm-push for usage"
   shortHelp: "Push chart package to ChartMuseum"
 runtimeConfig:
   platformCommand:
     - command: "$HELM_PLUGIN_DIR/bin/helm-cm-push"
-downloaders:
-- command: "bin/helm-cm-push"
-  protocols:
-  - "cm"
-useTunnel: false
-platformHooks:
-  install:
-    - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
-  update:
-    - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+  platformHooks:
+    install:
+      - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+    update:
+      - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"

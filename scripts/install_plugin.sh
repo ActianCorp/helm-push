@@ -7,7 +7,7 @@ if [ -n "${HELM_PUSH_PLUGIN_NO_INSTALL_HOOK}" ]; then
     exit 0
 fi
 
-version="$(cat plugin.yaml | grep "version" | cut -d '"' -f 2)"
+version="$(cat ${HELM_PLUGIN_DIR}/plugin.yaml | grep "version" | cut -d '"' -f 2)"
 echo "Downloading and installing helm-push v${version} ..."
 
 url=""
@@ -47,15 +47,15 @@ fi
 
 echo $url
 
-mkdir -p "bin"
-mkdir -p "releases/v${version}"
+mkdir -p "${HELM_PLUGIN_DIR}/bin"
+mkdir -p "${HELM_PLUGIN_DIR}/releases/v${version}"
 
 # Download with curl if possible.
 if [ -x "$(which curl 2>/dev/null)" ]; then
-    curl -sSL "${url}" -o "releases/v${version}.tar.gz"
+    curl -sSL "${url}" -o "${HELM_PLUGIN_DIR}/releases/v${version}.tar.gz"
 else
-    wget -q "${url}" -O "releases/v${version}.tar.gz"
+    wget -q "${url}" -O "${HELM_PLUGIN_DIR}/releases/v${version}.tar.gz"
 fi
-tar xzf "releases/v${version}.tar.gz" -C "releases/v${version}"
-mv "releases/v${version}/bin/helm-cm-push" "bin/helm-cm-push" || \
-    mv "releases/v${version}/bin/helm-cm-push.exe" "bin/helm-cm-push"
+tar xzf "${HELM_PLUGIN_DIR}/releases/v${version}.tar.gz" -C "${HELM_PLUGIN_DIR}/releases/v${version}"
+mv "${HELM_PLUGIN_DIR}/releases/v${version}/bin/helm-cm-push" "${HELM_PLUGIN_DIR}/bin/helm-cm-push" || \
+    mv "${HELM_PLUGIN_DIR}/releases/v${version}/bin/helm-cm-push.exe" "${HELM_PLUGIN_DIR}/bin/helm-cm-push"

@@ -104,9 +104,9 @@ Chart package can be pushed to ChartMuseum with custom version
     clear chartmuseum storage
 
 Suite Setup
-    set helm version    3
-    remove helm plugin
     set helm version    4
+    remove helm plugin
+    set helm version    3
     remove helm plugin
     remove chartmuseum logs
     start chartmuseum
@@ -117,9 +117,9 @@ Suite Setup
     add chart repo
 
 Suite Teardown
-    set helm version    3
-    remove helm plugin
     set helm version    4
+    remove helm plugin
+    set helm version    3
     remove helm plugin
     remove chart repo
     stop chartmuseum

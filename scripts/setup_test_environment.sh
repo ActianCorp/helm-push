@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-HELM_V3_VERSION="v3.11.2"
+HELM_V3_VERSION="v3.19.0"
 HELM_V4_VERSION="v4.0.4"
 CHARTMUSEUM_VERSION="v0.16.3"
 
@@ -11,6 +11,9 @@ export PATH="$PWD/testbin:$PATH"
 export TEST_V3_XDG_CACHE_HOME="$PWD/.helm3/xdg/cache"
 export TEST_V3_XDG_CONFIG_HOME="$PWD/.helm3/xdg/config"
 export TEST_V3_XDG_DATA_HOME="$PWD/.helm3/xdg/data"
+export TEST_V4_XDG_CACHE_HOME="$PWD/.helm4/xdg/cache"
+export TEST_V4_XDG_CONFIG_HOME="$PWD/.helm4/xdg/config"
+export TEST_V4_XDG_DATA_HOME="$PWD/.helm4/xdg/data"
 
 [ "$(uname)" == "Darwin" ] && PLATFORM="darwin" || PLATFORM="linux"
 
@@ -55,6 +58,7 @@ install_helm_v4() {
     fi
 }
 
+
 install_chartmuseum() {
     if [ ! -f "testbin/chartmuseum" ]; then
         mkdir -p testbin/
@@ -71,7 +75,7 @@ package_test_charts() {
     pushd testdata/charts/helm3/
     for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
         pushd $d
-        XDG_CACHE_HOME=${TEST_V3_XDG_CACHE_HOME} XDG_CONFIG_HOME=${TEST_V3_XDG_CONFIG_HOME} XDG_DATA_HOME=${TEST_V3_XDG_DATA_HOME} helm3 package \
+        XDG_CACHE_HOME=${TEST_V4_XDG_CACHE_HOME} XDG_CONFIG_HOME=${TEST_V4_XDG_CONFIG_HOME} XDG_DATA_HOME=${TEST_V4_XDG_DATA_HOME} helm4 package \
             --sign --key helm-test --keyring ../../../pgp/helm-test-key.secret .
         popd
     done

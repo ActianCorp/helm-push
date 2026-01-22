@@ -43,13 +43,13 @@ helm-push is not listed as a Helm plugin after removal
     return code should not be   0
 
 Suite Setup
-    set helm version    3
-    remove helm plugin
     set helm version    4
+    remove helm plugin
+    set helm version    3
     remove helm plugin
 
 Suite Teardown
-    set helm version    3
-    remove helm plugin
     set helm version    4
+    remove helm plugin
+    set helm version    3
     remove helm plugin

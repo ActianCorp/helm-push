@@ -1,7 +1,7 @@
 # helm cm-push plugin
 <img align="right" src="https://github.com/helm/chartmuseum/raw/main/logo.png">
 
-[![GitHub Actions status](https://github.com/chartmuseum/helm-push/workflows/build/badge.svg)](https://github.com/chartmuseum/helm-push/actions?query=workflow%3Abuild)
+[![GitHub Actions status](https://github.com/ActianCorp/helm-push/workflows/build/badge.svg)](https://github.com/ActianCorp/helm-push/actions?query=workflow%3Abuild)
 
 Helm plugin to push chart package to [ChartMuseum](https://github.com/helm/chartmuseum)
 

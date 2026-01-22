@@ -4,12 +4,15 @@ import time
 
 NOW = time.strftime("%Y%m%d%H%M%S")
 PORT = 28080
-HELM_REPO_NAME = "helm-push-test"
-HELM_REPO_URL = "http://localhost:%d" % PORT
-TESTCHARTS_DIR = "testdata/charts"
-ACCEPTANCE_DIR = ".acceptance/"
-STORAGE_DIR = os.path.join(ACCEPTANCE_DIR, "storage/")
-LOGFILE = ".chartmuseum.log"
+HELM_REPO_NAME = 'helm-push-test'
+HELM_REPO_URL = 'http://localhost:%d' % PORT
+TESTCHARTS_DIR = 'testdata/charts'
+ACCEPTANCE_DIR = '.acceptance/'
+STORAGE_DIR = os.path.join(ACCEPTANCE_DIR, 'storage/')
+LOGFILE = '.chartmuseum.log'
+HELM_EXE = 'XDG_CACHE_HOME=%s XDG_CONFIG_HOME=%s XDG_DATA_HOME=%s helm3' % \
+    (os.getenv('TEST_V3_XDG_CACHE_HOME', ''), os.getenv('TEST_V3_XDG_CONFIG_HOME', ''),
+     os.getenv('TEST_V3_XDG_DATA_HOME', ''))
 USE_OPPOSITE_VERSION = False
 
 

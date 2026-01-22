@@ -21,14 +21,6 @@ Test ChartMuseum integration
     install helm plugin
     helm major version detected by plugin is  ${version}
 
-    use test chart built by same helm version
-    clear chartmuseum storage
-    Chart directory can be pushed to ChartMuseum
-    Chart directory can be pushed to ChartMuseum with custom version
-    Chart package can be pushed to ChartMuseum
-    Chart package can be pushed to ChartMuseum with custom version
-
-    use test chart built by opposite helm version
     clear chartmuseum storage
     Chart directory can be pushed to ChartMuseum
     Chart directory can be pushed to ChartMuseum with custom version

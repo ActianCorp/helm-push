@@ -43,8 +43,25 @@ class Helm(common.CommandRunner):
     def remove_chart_repo(self):
         self.run_command("%s repo remove %s" % (common.HELM_EXE, common.HELM_REPO_NAME))
 
+    def setup_plugin_manifest(self):
+        # In development mode, manually copy the correct manifest for this Helm version
+        if 'helm4' in common.HELM_EXE:
+            self.run_command('cp %s/testdata/plugin-helm4.yaml %s/plugin.yaml' % (self.rootdir, self.rootdir))
+        elif 'helm3' in common.HELM_EXE:
+            self.run_command('cp %s/testdata/plugin-helm3.yaml %s/plugin.yaml' % (self.rootdir, self.rootdir))
+
     def install_helm_plugin(self):
-        self.run_command("%s plugin install %s" % (common.HELM_EXE, self.rootdir))
+        # Setup correct manifest before installing
+        self.setup_plugin_manifest()
+
+        # Set HELM_MAJOR_VERSION env var to help install script detect correct version
+        if 'helm4' in common.HELM_EXE:
+            helm_version = '4'
+        elif 'helm3' in common.HELM_EXE:
+            helm_version = '3'
+        else:
+            helm_version = '3'  # Default to 3
+        self.run_command('HELM_MAJOR_VERSION=%s %s plugin install %s' % (helm_version, common.HELM_EXE, self.rootdir))
 
     def check_helm_plugin(self):
         self.run_command("%s plugin list | grep ^cm-push" % common.HELM_EXE)

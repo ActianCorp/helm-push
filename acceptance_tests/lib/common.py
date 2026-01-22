@@ -2,7 +2,7 @@ import os
 import subprocess
 import time
 
-NOW = time.strftime('%Y%m%d%H%M%S')
+NOW = time.strftime("%Y%m%d%H%M%S")
 PORT = 28080
 HELM_REPO_NAME = 'helm-push-test'
 HELM_REPO_URL = 'http://localhost:%d' % PORT
@@ -10,7 +10,9 @@ TESTCHARTS_DIR = 'testdata/charts'
 ACCEPTANCE_DIR = '.acceptance/'
 STORAGE_DIR = os.path.join(ACCEPTANCE_DIR, 'storage/')
 LOGFILE = '.chartmuseum.log'
-HELM_EXE = 'HELM_HOME=%s helm2' % os.getenv('TEST_HELM_HOME', '')
+HELM_EXE = 'XDG_CACHE_HOME=%s XDG_CONFIG_HOME=%s XDG_DATA_HOME=%s helm3' % \
+    (os.getenv('TEST_V3_XDG_CACHE_HOME', ''), os.getenv('TEST_V3_XDG_CONFIG_HOME', ''),
+     os.getenv('TEST_V3_XDG_DATA_HOME', ''))
 USE_OPPOSITE_VERSION = False
 
 
@@ -18,13 +20,14 @@ class CommandRunner(object):
     def __init__(self):
         self.rc = 0
         self.pid = 0
-        self.stdout = ''
-        self.rootdir = os.path.realpath(os.path.join(__file__, '../../../'))
+        self.stdout = ""
+        self.rootdir = os.path.realpath(os.path.join(__file__, "../../../"))
 
     def return_code_should_be(self, expected_rc):
         if int(expected_rc) != self.rc:
-            raise AssertionError('Expected return code to be "%s" but was "%s".'
-                                 % (expected_rc, self.rc))
+            raise AssertionError(
+                'Expected return code to be "%s" but was "%s".' % (expected_rc, self.rc)
+            )
 
     def return_code_should_not_be(self, expected_rc):
         if int(expected_rc) == self.rc:
@@ -39,15 +42,17 @@ class CommandRunner(object):
             raise AssertionError('Output contains "%s".' % s)
 
     def run_command(self, command, detach=False):
-        process = subprocess.Popen(['/bin/bash', '-xc', command],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
+        process = subprocess.Popen(
+            ["/bin/bash", "-xc", command],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
         if not detach:
             stdout = process.communicate()[0].strip().decode()
             self.rc = process.returncode
             tmp = []
-            for x in stdout.split('\n'):
+            for x in stdout.split("\n"):
                 print(x)
-                if not x.startswith('+ '): # Remove debug lines that start with "+ "
+                if not x.startswith("+ "):  # Remove debug lines that start with "+ "
                     tmp.append(x)
-            self.stdout = '\n'.join(tmp)
+            self.stdout = "\n".join(tmp)

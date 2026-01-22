@@ -6,9 +6,7 @@ import common
 class Helm(common.CommandRunner):
     def set_helm_version(self, version):
         version = str(version)
-        if version == "2":
-            common.HELM_EXE = "HELM_HOME=%s helm2" % os.getenv("TEST_V2_HELM_HOME", "")
-        elif version == "3":
+        if version == "3":
             common.HELM_EXE = (
                 "XDG_CACHE_HOME=%s XDG_CONFIG_HOME=%s XDG_DATA_HOME=%s helm3"
                 % (

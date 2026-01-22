@@ -9,14 +9,14 @@ class HelmPush(common.CommandRunner):
             elif "helm4" in common.HELM_EXE:
                 return "%s/helm3/my-v3-chart" % common.TESTCHARTS_DIR
             else:
-                raise Exception("Opposite version testing not supported for Helm 2")
+                raise Exception("Invalid helm version")
         else:
             if "helm3" in common.HELM_EXE:
                 return "%s/helm3/my-v3-chart" % common.TESTCHARTS_DIR
             elif "helm4" in common.HELM_EXE:
                 return "%s/helm4/my-v4-chart" % common.TESTCHARTS_DIR
             else:
-                return "%s/helm2/mychart" % common.TESTCHARTS_DIR
+                raise Exception("Invalid helm version")
 
     def helm_major_version_detected_by_plugin_is(self, version):
         cmd = "%s cm-push --check-helm-version" % common.HELM_EXE

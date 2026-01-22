@@ -36,28 +36,12 @@ class ChartMuseum(common.CommandRunner):
         )
 
     def package_contains_expected_files(self):
-        # Check for requirements.yaml in Helm 2 (a Helm 2-specific file)
-        checkRequirementsYamlCmd = (
-            "(cd %s && mkdir -p tmp && tar -xf *.tgz --directory tmp && find tmp -name requirements.yaml | grep requirements.yaml)"
-            % common.STORAGE_DIR
-        )
-
-        # Check for values.schema.json in Helm 3&4 (a Helm 3&4-specific file)
+        # Check for values.schema.json in Helm 3+ (a Helm 3+-specific file)
         checkValuesSchemaJsonCmd = (
             "(cd %s && mkdir -p tmp && tar -xf *.tgz --directory tmp && find tmp -name values.schema.json | grep values.schema.json)"
             % common.STORAGE_DIR
         )
-
-        if common.USE_OPPOSITE_VERSION:
-            if "helm3" in common.HELM_EXE or "helm4" in common.HELM_EXE:
-                self.run_command(checkValuesSchemaJsonCmd)
-            else:
-                raise Exception("Opposite version testing not supported for Helm 2")
-        else:
-            if "helm3" in common.HELM_EXE or "helm4" in common.HELM_EXE:
-                self.run_command(checkValuesSchemaJsonCmd)
-            else:
-                self.run_command(checkRequirementsYamlCmd)
+        self.run_command(checkValuesSchemaJsonCmd)
 
     def clear_chartmuseum_storage(self):
         self.run_command("rm %s*.tgz" % common.STORAGE_DIR)

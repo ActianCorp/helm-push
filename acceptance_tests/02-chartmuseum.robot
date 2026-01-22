@@ -8,9 +8,6 @@ Suite Setup       Suite Setup
 Suite Teardown    Suite Teardown
 
 *** Test Cases ***
-Plugin works with ChartMuseum on Helm 2
-    Test ChartMuseum integration   2
-
 Plugin works with ChartMuseum on Helm 3
     Test ChartMuseum integration   3
 
@@ -31,13 +28,12 @@ Test ChartMuseum integration
     Chart package can be pushed to ChartMuseum
     Chart package can be pushed to ChartMuseum with custom version
 
-    # Only test opposite version for Helm 3 and 4
-    Run Keyword If    '${version}' != '2'    use test chart built by opposite helm version
-    Run Keyword If    '${version}' != '2'    clear chartmuseum storage
-    Run Keyword If    '${version}' != '2'    Chart directory can be pushed to ChartMuseum
-    Run Keyword If    '${version}' != '2'    Chart directory can be pushed to ChartMuseum with custom version
-    Run Keyword If    '${version}' != '2'    Chart package can be pushed to ChartMuseum
-    Run Keyword If    '${version}' != '2'    Chart package can be pushed to ChartMuseum with custom version
+    use test chart built by opposite helm version
+    clear chartmuseum storage
+    Chart directory can be pushed to ChartMuseum
+    Chart directory can be pushed to ChartMuseum with custom version
+    Chart package can be pushed to ChartMuseum
+    Chart package can be pushed to ChartMuseum with custom version
 
 Chart directory can be pushed to ChartMuseum
     # Repo name
@@ -120,13 +116,9 @@ Suite Setup
     remove helm plugin
     set helm version    3
     remove helm plugin
-    set helm version    2
-    remove helm plugin
     remove chartmuseum logs
     start chartmuseum
     Sleep  2
-    set helm version    2
-    add chart repo
     set helm version    3
     add chart repo
     set helm version    4
@@ -136,8 +128,6 @@ Suite Teardown
     set helm version    4
     remove helm plugin
     set helm version    3
-    remove helm plugin
-    set helm version    2
     remove helm plugin
     remove chart repo
     stop chartmuseum

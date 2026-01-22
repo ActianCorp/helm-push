@@ -12,6 +12,9 @@ Plugin installs on Helm 2
 Plugin installs on Helm 3
     Test plugin installation   3
 
+Plugin installs on Helm 4
+    Test plugin installation   4
+
 *** Keywords ***
 Test plugin installation
     [Arguments]    ${version}
@@ -43,12 +46,16 @@ helm-push is not listed as a Helm plugin after removal
     return code should not be   0
 
 Suite Setup
+    set helm version    4
+    remove helm plugin
     set helm version    3
     remove helm plugin
     set helm version    2
     remove helm plugin
 
 Suite Teardown
+    set helm version    4
+    remove helm plugin
     set helm version    3
     remove helm plugin
     set helm version    2

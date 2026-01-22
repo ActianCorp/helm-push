@@ -1,8 +1,9 @@
 #!/bin/bash -ex
 
 HELM_V2_VERSION="v2.17.0"
-HELM_V3_VERSION="v3.18.2"
-CHARTMUSEUM_VERSION="v0.15.0"
+HELM_V3_VERSION="v3.19.0"
+HELM_V4_VERSION="v4.0.0"
+CHARTMUSEUM_VERSION="v0.16.3"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/../
@@ -12,12 +13,16 @@ export TEST_V2_HELM_HOME="$PWD/.helm2"
 export TEST_V3_XDG_CACHE_HOME="$PWD/.helm3/xdg/cache"
 export TEST_V3_XDG_CONFIG_HOME="$PWD/.helm3/xdg/config"
 export TEST_V3_XDG_DATA_HOME="$PWD/.helm3/xdg/data"
+export TEST_V4_XDG_CACHE_HOME="$PWD/.helm4/xdg/cache"
+export TEST_V4_XDG_CONFIG_HOME="$PWD/.helm4/xdg/config"
+export TEST_V4_XDG_DATA_HOME="$PWD/.helm4/xdg/data"
 
 [ "$(uname)" == "Darwin" ] && PLATFORM="darwin" || PLATFORM="linux"
 
 main() {
     install_helm_v2
     install_helm_v3
+    install_helm_v4
     install_chartmuseum
     package_test_charts
 }
@@ -57,6 +62,24 @@ install_helm_v3() {
     fi
 }
 
+install_helm_v4() {
+    if [ ! -f "testbin/helm4" ]; then
+        mkdir -p testbin/
+        TARBALL="helm-${HELM_V4_VERSION}-${PLATFORM}-amd64.tar.gz"
+        curl -LO "https://get.helm.sh/${TARBALL}"
+        tar -C testbin/ -xzf $TARBALL
+        rm -f $TARBALL
+        pushd testbin/
+        UNCOMPRESSED_DIR="$(find . -mindepth 1 -maxdepth 1 -type d)"
+        mv $UNCOMPRESSED_DIR/helm .
+        rm -rf $UNCOMPRESSED_DIR
+        chmod +x ./helm
+        mv ./helm ./helm4
+        popd
+    fi
+}
+
+
 install_chartmuseum() {
     if [ ! -f "testbin/chartmuseum" ]; then
         mkdir -p testbin/
@@ -82,6 +105,15 @@ package_test_charts() {
     for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
         pushd $d
         XDG_CACHE_HOME=${TEST_V3_XDG_CACHE_HOME} XDG_CONFIG_HOME=${TEST_V3_XDG_CONFIG_HOME} XDG_DATA_HOME=${TEST_V3_XDG_DATA_HOME} helm3 package \
+            --sign --key helm-test --keyring ../../../pgp/helm-test-key.secret .
+        popd
+    done
+    popd
+
+    pushd testdata/charts/helm4/
+    for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
+        pushd $d
+        XDG_CACHE_HOME=${TEST_V4_XDG_CACHE_HOME} XDG_CONFIG_HOME=${TEST_V4_XDG_CONFIG_HOME} XDG_DATA_HOME=${TEST_V4_XDG_DATA_HOME} helm4 package \
             --sign --key helm-test --keyring ../../../pgp/helm-test-key.secret .
         popd
     done

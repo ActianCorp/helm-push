@@ -10,6 +10,11 @@ Based on the version in `plugin.yaml`, release binary will be downloaded from Gi
 
 ```
 $ helm plugin install https://github.com/chartmuseum/helm-push
+```
+
+This will download and install the appropriate release binary from GitHub. Upon successful installation, you should see output similar to:
+
+```
 Downloading and installing helm-push v0.10.1 ...
 https://github.com/chartmuseum/helm-push/releases/download/v0.10.1/helm-push_0.10.1_darwin_amd64.tar.gz
 Installed plugin: cm-push

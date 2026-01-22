@@ -1,13 +1,16 @@
+apiVersion: v1
+type: cli/v1
 name: "cm-push"
 version: "0.11.0"
-usage: "Please see https://github.com/ActianCorp/helm-push for usage"
-description: "Push chart package to ChartMuseum"
-command: "$HELM_PLUGIN_DIR/bin/helm-cm-push"
-downloaders:
-  - command: "bin/helm-cm-push"
-    protocols:
-      - "cm"
-useTunnel: false
-hooks:
-  install: "cd $HELM_PLUGIN_DIR; scripts/install_plugin.sh"
-  update: "cd $HELM_PLUGIN_DIR; scripts/install_plugin.sh"
+runtime: subprocess
+config:
+  longHelp: "Please see https://github.com/ActianCorp/helm-push for usage"
+  shortHelp: "Push chart package to ChartMuseum"
+runtimeConfig:
+  platformCommand:
+    - command: "$HELM_PLUGIN_DIR/bin/helm-cm-push"
+  platformHooks:
+    install:
+      - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+    update:
+      - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"

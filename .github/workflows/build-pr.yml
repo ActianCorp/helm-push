@@ -1,4 +1,7 @@
 name: build-pr
+permissions:
+  actions: read # Read workflow data
+  contents: read # Read repository contents
 
 on:
   pull_request:

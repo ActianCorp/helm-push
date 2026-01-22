@@ -1,4 +1,7 @@
 name: build
+permissions:
+  actions: read # Read workflow data
+  contents: read # Read repository contents
 
 on:
   push:

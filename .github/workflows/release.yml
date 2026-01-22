@@ -1,4 +1,7 @@
 name: release
+permissions:
+  actions: read # Read workflow data
+  contents: write # Read repository contents
 
 on:
   push:

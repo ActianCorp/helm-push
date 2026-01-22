@@ -11,9 +11,6 @@ export PATH="$PWD/testbin:$PATH"
 export TEST_V3_XDG_CACHE_HOME="$PWD/.helm3/xdg/cache"
 export TEST_V3_XDG_CONFIG_HOME="$PWD/.helm3/xdg/config"
 export TEST_V3_XDG_DATA_HOME="$PWD/.helm3/xdg/data"
-export TEST_V4_XDG_CACHE_HOME="$PWD/.helm4/xdg/cache"
-export TEST_V4_XDG_CONFIG_HOME="$PWD/.helm4/xdg/config"
-export TEST_V4_XDG_DATA_HOME="$PWD/.helm4/xdg/data"
 
 [ "$(uname)" == "Darwin" ] && PLATFORM="darwin" || PLATFORM="linux"
 
@@ -75,7 +72,7 @@ package_test_charts() {
     pushd testdata/charts/helm3/
     for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
         pushd $d
-        XDG_CACHE_HOME=${TEST_V4_XDG_CACHE_HOME} XDG_CONFIG_HOME=${TEST_V4_XDG_CONFIG_HOME} XDG_DATA_HOME=${TEST_V4_XDG_DATA_HOME} helm4 package \
+        XDG_CACHE_HOME=${TEST_V3_XDG_CACHE_HOME} XDG_CONFIG_HOME=${TEST_V3_XDG_CONFIG_HOME} XDG_DATA_HOME=${TEST_V3_XDG_DATA_HOME} helm4 package \
             --sign --key helm-test --keyring ../../../pgp/helm-test-key.secret .
         popd
     done

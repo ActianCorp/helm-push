@@ -19,9 +19,9 @@ class Helm(common.CommandRunner):
             common.HELM_EXE = (
                 "XDG_CACHE_HOME=%s XDG_CONFIG_HOME=%s XDG_DATA_HOME=%s helm4"
                 % (
-                    os.getenv("TEST_V4_XDG_CACHE_HOME", ""),
-                    os.getenv("TEST_V4_XDG_CONFIG_HOME", ""),
-                    os.getenv("TEST_V4_XDG_DATA_HOME", ""),
+                    os.getenv("TEST_V3_XDG_CACHE_HOME", ""),
+                    os.getenv("TEST_V3_XDG_CONFIG_HOME", ""),
+                    os.getenv("TEST_V3_XDG_DATA_HOME", ""),
                 )
             )
         else:
@@ -45,23 +45,32 @@ class Helm(common.CommandRunner):
 
     def setup_plugin_manifest(self):
         # In development mode, manually copy the correct manifest for this Helm version
-        if 'helm4' in common.HELM_EXE:
-            self.run_command('cp %s/testdata/plugin-helm4.yaml %s/plugin.yaml' % (self.rootdir, self.rootdir))
-        elif 'helm3' in common.HELM_EXE:
-            self.run_command('cp %s/testdata/plugin-helm3.yaml %s/plugin.yaml' % (self.rootdir, self.rootdir))
+        if "helm4" in common.HELM_EXE:
+            self.run_command(
+                "cp %s/testdata/plugin-helm4.yaml %s/plugin.yaml"
+                % (self.rootdir, self.rootdir)
+            )
+        elif "helm3" in common.HELM_EXE:
+            self.run_command(
+                "cp %s/testdata/plugin-helm3.yaml %s/plugin.yaml"
+                % (self.rootdir, self.rootdir)
+            )
 
     def install_helm_plugin(self):
         # Setup correct manifest before installing
         self.setup_plugin_manifest()
 
         # Set HELM_MAJOR_VERSION env var to help install script detect correct version
-        if 'helm4' in common.HELM_EXE:
-            helm_version = '4'
-        elif 'helm3' in common.HELM_EXE:
-            helm_version = '3'
+        if "helm4" in common.HELM_EXE:
+            helm_version = "4"
+        elif "helm3" in common.HELM_EXE:
+            helm_version = "3"
         else:
-            helm_version = '3'  # Default to 3
-        self.run_command('HELM_MAJOR_VERSION=%s %s plugin install %s' % (helm_version, common.HELM_EXE, self.rootdir))
+            helm_version = "3"  # Default to 3
+        self.run_command(
+            "HELM_MAJOR_VERSION=%s %s plugin install %s"
+            % (helm_version, common.HELM_EXE, self.rootdir)
+        )
 
     def check_helm_plugin(self):
         self.run_command("%s plugin list | grep ^cm-push" % common.HELM_EXE)

@@ -1,7 +1,7 @@
 apiVersion: v1
 type: cli/v1
 name: "cm-push"
-version: "0.11.0"
+version: "0.11.1"
 runtime: subprocess
 config:
   longHelp: "Please see https://github.com/ActianCorp/helm-push for usage"

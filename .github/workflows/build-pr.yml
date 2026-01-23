@@ -29,10 +29,12 @@ jobs:
         with:
           name: helmpush-coverage-report-${{ github.sha }}
           path: .cover/
+          include-hidden-files: true
         if: always()
       - name: upload acceptance report
         uses: actions/upload-artifact@main
         with:
           name: helmpush-acceptance-report-${{ github.sha }}
           path: .robot/
+          include-hidden-files: true
         if: always()

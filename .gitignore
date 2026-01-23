@@ -1,9 +1,11 @@
 **/*.pyc
 **/*.tgz
 **/*.tgz.prov
+**/.DS_Store
 .chartmuseum.log
 .cover/
 .helm3/
+.helm4/
 .helm-version
 .idea/
 .robot/

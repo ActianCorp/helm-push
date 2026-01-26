@@ -35,7 +35,6 @@ archives:
       - LICENSE
       - plugin.yaml
       - testdata/plugin-helm3.yaml
-      - testdata/plugin-helm4.yaml
 
 signs:
   - artifacts: checksum

@@ -14,10 +14,8 @@ update_plugin_manifest() {
 
     plugin_dir="${HELM_PLUGIN_DIR:-$(pwd)}"
 
-    # Copy the appropriate manifest for this Helm version
-    if [ "$helm_version" = "4" ] && [ -f "$plugin_dir/testdata/plugin-helm4.yaml" ]; then
-        cp "$plugin_dir/testdata/plugin-helm4.yaml" "$plugin_dir/plugin.yaml"
-    elif [ -f "$plugin_dir/testdata/plugin-helm3.yaml" ]; then
+    # Copy the old manifest for Helm3 version
+    if [ "$helm_version" = "3" ] && [ -f "$plugin_dir/testdata/plugin-helm4.yaml" ]; then
         cp "$plugin_dir/testdata/plugin-helm3.yaml" "$plugin_dir/plugin.yaml"
     fi
 }
@@ -85,4 +83,3 @@ fi
 tar xzf "${HELM_PLUGIN_DIR}/releases/v${version}.tar.gz" -C "${HELM_PLUGIN_DIR}/releases/v${version}"
 mv "${HELM_PLUGIN_DIR}/releases/v${version}/bin/helm-cm-push" "${HELM_PLUGIN_DIR}/bin/helm-cm-push" || \
     mv "${HELM_PLUGIN_DIR}/releases/v${version}/bin/helm-cm-push.exe" "${HELM_PLUGIN_DIR}/bin/helm-cm-push"
-

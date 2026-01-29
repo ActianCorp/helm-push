@@ -38,24 +38,50 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --clean
+          args: build --snapshot --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
+      - name: Configure GPG for Helm compatibility
+        env:
+          GPG_KEY: ${{ steps.import_gpg.outputs.keyid }}
+          GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
+        run: |
+          # Set GNUPGHOME explicitly
+          export GNUPGHOME="${HOME}/.gnupg"
+
+          # Export secret keys with passphrase
+          echo "Exporting secret keys to legacy format..."
+          echo "${GPG_PASSPHRASE}" | gpg \
+            --pinentry-mode loopback \
+            --passphrase-fd 0 \
+            --export-secret-keys > "${GNUPGHOME}/secring.gpg"
+
       - name: package
         env:
-          GPG_KEY: ${{ steps.import_gpg.outputs.name }}
+          GPG_KEY_ID: ${{ steps.import_gpg.outputs.keyid }}
+          GPG_KEY_EMAIL: ${{ steps.import_gpg.outputs.email }}
+          GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          GNUPGHOME: /home/runner/.gnupg
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
+          # Extract version from tag or use snapshot for branches
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            # For non-tag builds, use version from plugin.yaml with snapshot suffix
+            VERSION=$(grep "version:" plugin.yaml | cut -d '"' -f 2)-snapshot
+          fi
+          echo ${VERSION}
 
-          # Create a temporary directory for packaging
+          # Create output directory
           mkdir -p packaged-plugins
 
           # Package for each platform/arch combination
+          echo "$GPG_PASSPHRASE" > passphrase.txt
           for os in darwin linux windows; do
-            for arch in amd64 arm64; do
-              DIST_PATH="dist/helm-push_${os}_${arch}_v1"
+            for arch in amd64_v1 arm64_v8.0; do
+              DIST_PATH="dist/helm-push_${os}_${arch}"
 
               # Check if the goreleaser dist directory exists
               if [ ! -d "${DIST_PATH}" ]; then
@@ -68,26 +94,43 @@ jobs:
               # Create a temporary plugin directory with correct structure
               PLUGIN_DIR=$(mktemp -d)
               mkdir -p "${PLUGIN_DIR}/bin"
+              mkdir -p "${PLUGIN_DIR}/testdata"
 
               # Copy files from goreleaser output
               cp "${DIST_PATH}/bin/helm-cm-push"* "${PLUGIN_DIR}/bin/"
               cp plugin.yaml "${PLUGIN_DIR}/"
+              cp testdata/plugin-helm3.yaml "${PLUGIN_DIR}/testdata/"
               cp LICENSE "${PLUGIN_DIR}/"
 
               # Update plugin.yaml version if needed
-              sed -i.bak "s/version: .*/version: \"${VERSION}\"/" "${PLUGIN_DIR}/plugin.yaml"
-              rm "${PLUGIN_DIR}/plugin.yaml.bak"
+              sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/plugin.yaml"
+              sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/testdata/plugin-helm3.yaml"
 
               # Package and sign with helm
               OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"
+              OUTPUT_PATH="${GITHUB_WORKSPACE}/packaged-plugins/${OUTPUT_NAME}"
+
+              # Try helm plugin package with signing
               helm plugin package "${PLUGIN_DIR}" \
                 --destination packaged-plugins \
                 --sign \
-                --key "${GPG_KEY}"
+                --key "${GPG_KEY_EMAIL}" \
+                --keyring "${GNUPGHOME}/secring.gpg" \
+                --passphrase-file passphrase.txt 2>&1
 
-              # Rename to our naming convention
-              mv packaged-plugins/*.tgz "packaged-plugins/${OUTPUT_NAME}"
-              mv packaged-plugins/*.tgz.prov "packaged-plugins/${OUTPUT_NAME}.prov"
+                echo "✓ Helm plugin package with signing succeeded"
+
+                # Find the generated files (helm may generate different names)
+                LATEST_TGZ=$(ls -t packaged-plugins/*.tgz 2>/dev/null | head -1)
+                LATEST_PROV=$(ls -t packaged-plugins/*.tgz.prov 2>/dev/null | head -1)
+
+                # Rename to our naming convention if files were created
+                if [ -n "${LATEST_TGZ}" ] && [ -f "${LATEST_TGZ}" ]; then
+                  mv "${LATEST_TGZ}" "packaged-plugins/${OUTPUT_NAME}"
+                  if [ -n "${LATEST_PROV}" ] && [ -f "${LATEST_PROV}" ]; then
+                    mv "${LATEST_PROV}" "packaged-plugins/${OUTPUT_NAME}.prov"
+                  fi
+                fi
 
               # Cleanup temp directory
               rm -rf "${PLUGIN_DIR}"
@@ -95,6 +138,7 @@ jobs:
               echo "✓ Created ${OUTPUT_NAME}"
             done
           done
+          rm passphrase.txt
 
           # List created packages
           echo ""
@@ -106,6 +150,6 @@ jobs:
         with:
           files: |
             packaged-plugins/*.tgz
-            packaged-plugins/*.tgz.prov
+            packaged-plugins/*.prov
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

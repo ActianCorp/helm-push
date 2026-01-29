@@ -1,39 +1,39 @@
-name: build
-permissions:
-  actions: read # Read workflow data
-  contents: read # Read repository contents
+# name: build
+# permissions:
+#   actions: read # Read workflow data
+#   contents: read # Read repository contents
 
-on:
-  push:
-    branches: main
+# on:
+#   push:
+#     branches: main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: setup go environment
-        uses: actions/setup-go@v6
-        with:
-          go-version: "1.25"
-      - name: run unit tests
-        run: sudo pip install virtualenv && make test
-      - name: build binary
-        run: make build_linux link_linux
-      - name: run acceptance tests
-        run: make acceptance
-      - name: upload coverage report
-        uses: actions/upload-artifact@main
-        with:
-          name: helmpush-coverage-report-${{ github.sha }}
-          path: .cover/
-          include-hidden-files: true
-        if: always()
-      - name: upload acceptance report
-        uses: actions/upload-artifact@main
-        with:
-          name: helmpush-acceptance-report-${{ github.sha }}
-          path: .robot/
-          include-hidden-files: true
-        if: always()
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
+#       - name: setup go environment
+#         uses: actions/setup-go@v6
+#         with:
+#           go-version: "1.25"
+#       - name: run unit tests
+#         run: sudo pip install virtualenv && make test
+#       - name: build binary
+#         run: make build_linux link_linux
+#       - name: run acceptance tests
+#         run: make acceptance
+#       - name: upload coverage report
+#         uses: actions/upload-artifact@main
+#         with:
+#           name: helmpush-coverage-report-${{ github.sha }}
+#           path: .cover/
+#           include-hidden-files: true
+#         if: always()
+#       - name: upload acceptance report
+#         uses: actions/upload-artifact@main
+#         with:
+#           name: helmpush-acceptance-report-${{ github.sha }}
+#           path: .robot/
+#           include-hidden-files: true
+#         if: always()

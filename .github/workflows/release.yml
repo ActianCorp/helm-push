@@ -47,23 +47,33 @@ jobs:
 
       - name: package
         env:
-          GPG_KEY: ${{ steps.import_gpg.outputs.name }}
+          GPG_KEY: ${{ steps.import_gpg.outputs.email }}
+          GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
 
-          # Configure GPG agent for non-interactive use
-          echo "use-agent" > $GNUPGHOME/gpg.conf
-          echo "pinentry-mode loopback" >> $GNUPGHOME/gpg.conf
-          echo "allow-loopback-pinentry" > $GNUPGHOME/gpg-agent.conf
-          gpg-connect-agent reloadagent /bye
+          # Set GNUPGHOME explicitly
+          export GNUPGHOME="${HOME}/.gnupg"
 
-          # Get the key email or ID
-          GPG_KEY=$(gpg --list-secret-keys --keyid-format LONG | grep uid | head -n1 | sed 's/.*<\(.*\)>.*/\1/')
+          # Configure GPG agent for non-interactive use
+          echo "use-agent" > "${GNUPGHOME}/gpg.conf"
+          echo "pinentry-mode loopback" >> "${GNUPGHOME}/gpg.conf"
+          echo "allow-loopback-pinentry" > "${GNUPGHOME}/gpg-agent.conf"
+          gpg-connect-agent reloadagent /bye || true
+
+          # Verify GPG setup
+          echo "Available GPG keys:"
+          gpg --list-secret-keys
+
           echo "Using GPG key: ${GPG_KEY}"
 
-          # Set passphrase in gpg-agent cache
-          echo "${{ secrets.PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --armor --detach-sign --local-user "${GPG_KEY}" --output /tmp/test.sig <(echo "test")
+          # Test GPG signing to cache passphrase
+          echo "test" | gpg --batch --yes --passphrase "${GPG_PASSPHRASE}" \
+            --pinentry-mode loopback \
+            --armor --detach-sign --local-user "${GPG_KEY}" \
+            --output /tmp/test.sig
           rm /tmp/test.sig
+          echo "✓ GPG signing test successful"
 
           # Create a temporary directory for packaging
           mkdir -p packaged-plugins
@@ -98,24 +108,47 @@ jobs:
 
               # Package and sign with helm
               OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"
-              helm plugin package "${PLUGIN_DIR}" \
+
+              # Try helm plugin package with signing
+              if helm plugin package "${PLUGIN_DIR}" \
                 --destination packaged-plugins \
                 --sign \
-                --key "${GPG_KEY}"  || {
-                                 echo "Helm signing failed, using manual GPG signing"
-                                 cd "${PLUGIN_DIR}"
-                                 tar czf "${OUTPUT_NAME}.tgz" .
-                                 mv "${OUTPUT_NAME}.tgz" "${GITHUB_WORKSPACE}/packaged-plugins/"
-                                 cd "${GITHUB_WORKSPACE}"
-                                 echo "${{ secrets.PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 \
-                                   --armor --detach-sign --local-user "${GPG_KEY}" \
-                                   --output "packaged-plugins/${OUTPUT_NAME}.tgz.prov" \
-                                   "packaged-plugins/${OUTPUT_NAME}.tgz"
-                               }
+                --key "${GPG_KEY}" 2>&1; then
 
-              # Rename to our naming convention
-              # mv packaged-plugins/*.tgz "packaged-plugins/${OUTPUT_NAME}"
-              # mv packaged-plugins/*.tgz.prov "packaged-plugins/${OUTPUT_NAME}.prov"
+                echo "✓ Helm plugin package with signing succeeded"
+
+                # Find the generated files (helm may generate different names)
+                LATEST_TGZ=$(ls -t packaged-plugins/*.tgz 2>/dev/null | head -1)
+                LATEST_PROV=$(ls -t packaged-plugins/*.tgz.prov 2>/dev/null | head -1)
+
+                # Rename to our naming convention if files were created
+                if [ -n "${LATEST_TGZ}" ] && [ -f "${LATEST_TGZ}" ]; then
+                  mv "${LATEST_TGZ}" "packaged-plugins/${OUTPUT_NAME}"
+                  if [ -n "${LATEST_PROV}" ] && [ -f "${LATEST_PROV}" ]; then
+                    mv "${LATEST_PROV}" "packaged-plugins/${OUTPUT_NAME}.prov"
+                  fi
+                fi
+              else
+                echo "Helm plugin package --sign failed, using manual GPG signing"
+
+                # Manual packaging
+                cd "${PLUGIN_DIR}"
+                tar czf "${OUTPUT_NAME}" .
+                mv "${OUTPUT_NAME}" "${GITHUB_WORKSPACE}/packaged-plugins/"
+                cd "${GITHUB_WORKSPACE}"
+
+                # Manual GPG signing
+                echo "${GPG_PASSPHRASE}" | gpg --batch --yes \
+                  --passphrase-fd 0 \
+                  --pinentry-mode loopback \
+                  --armor \
+                  --detach-sign \
+                  --local-user "${GPG_KEY}" \
+                  --output "packaged-plugins/${OUTPUT_NAME}.prov" \
+                  "packaged-plugins/${OUTPUT_NAME}"
+
+                echo "✓ Manual signing succeeded"
+              fi
 
               # Cleanup temp directory
               rm -rf "${PLUGIN_DIR}"
@@ -134,6 +167,6 @@ jobs:
       #   with:
       #     files: |
       #       packaged-plugins/*.tgz
-      #       packaged-plugins/*.tgz.prov
+      #       packaged-plugins/*.prov
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

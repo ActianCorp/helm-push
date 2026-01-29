@@ -60,21 +60,6 @@ jobs:
             --passphrase-fd 0 \
             --export-secret-keys > "${GNUPGHOME}/secring.gpg"
 
-          # Verify the files were created
-          echo "Keyring files:"
-          ls -lah "${GNUPGHOME}/"*.gpg
-
-          # Test GPG signing
-          echo "Testing GPG signing..."
-          echo "test" | gpg --batch --yes \
-            --passphrase "${GPG_PASSPHRASE}" \
-            --pinentry-mode loopback \
-            --armor --detach-sign \
-            --local-user "${GPG_KEY}" \
-            --output /tmp/test.sig
-          rm /tmp/test.sig
-          echo "✓ GPG setup complete and tested"
-
       - name: package
         env:
           GPG_KEY_ID: ${{ steps.import_gpg.outputs.keyid }}

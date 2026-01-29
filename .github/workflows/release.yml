@@ -54,17 +54,33 @@ jobs:
           export GNUPGHOME="${HOME}/.gnupg"
 
           # Configure GPG for non-interactive use
-          echo "use-agent" > "${GNUPGHOME}/gpg.conf"
-          echo "pinentry-mode loopback" >> "${GNUPGHOME}/gpg.conf"
-          echo "allow-loopback-pinentry" > "${GNUPGHOME}/gpg-agent.conf"
+          cat > "${GNUPGHOME}/gpg.conf" <<EOF
+          use-agent
+          pinentry-mode loopback
+          batch
+          yes
+          EOF
+
+          cat > "${GNUPGHOME}/gpg-agent.conf" <<EOF
+          allow-loopback-pinentry
+          default-cache-ttl 34560000
+          max-cache-ttl 34560000
+          EOF
 
           # Restart GPG agent
-          gpg-connect-agent reloadagent /bye || true
+          gpgconf --kill gpg-agent
+          gpg-connect-agent /bye
 
-          # Export keys to old format that Helm expects
-          echo "Exporting keys to legacy format..."
+          # Export public keys to old format that Helm expects
+          echo "Exporting public keys to legacy format..."
           gpg --export > "${GNUPGHOME}/pubring.gpg"
-          gpg --export-secret-keys > "${GNUPGHOME}/secring.gpg"
+
+          # Export secret keys with passphrase
+          echo "Exporting secret keys to legacy format..."
+          echo "${GPG_PASSPHRASE}" | gpg --batch --yes \
+            --pinentry-mode loopback \
+            --passphrase-fd 0 \
+            --export-secret-keys > "${GNUPGHOME}/secring.gpg"
 
           # Set proper permissions
           chmod 600 "${GNUPGHOME}/secring.gpg"
@@ -75,6 +91,7 @@ jobs:
           ls -lah "${GNUPGHOME}/"*.gpg
 
           # Test GPG signing
+          echo "Testing GPG signing..."
           echo "test" | gpg --batch --yes \
             --passphrase "${GPG_PASSPHRASE}" \
             --pinentry-mode loopback \

@@ -45,6 +45,45 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
+      - name: Configure GPG for Helm compatibility
+        env:
+          GPG_KEY: ${{ steps.import_gpg.outputs.keyid }}
+          GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
+        run: |
+          # Set GNUPGHOME explicitly
+          export GNUPGHOME="${HOME}/.gnupg"
+
+          # Configure GPG for non-interactive use
+          echo "use-agent" > "${GNUPGHOME}/gpg.conf"
+          echo "pinentry-mode loopback" >> "${GNUPGHOME}/gpg.conf"
+          echo "allow-loopback-pinentry" > "${GNUPGHOME}/gpg-agent.conf"
+
+          # Restart GPG agent
+          gpg-connect-agent reloadagent /bye || true
+
+          # Export keys to old format that Helm expects
+          echo "Exporting keys to legacy format..."
+          gpg --export > "${GNUPGHOME}/pubring.gpg"
+          gpg --export-secret-keys > "${GNUPGHOME}/secring.gpg"
+
+          # Set proper permissions
+          chmod 600 "${GNUPGHOME}/secring.gpg"
+          chmod 644 "${GNUPGHOME}/pubring.gpg"
+
+          # Verify the files were created
+          echo "Keyring files:"
+          ls -lah "${GNUPGHOME}/"*.gpg
+
+          # Test GPG signing
+          echo "test" | gpg --batch --yes \
+            --passphrase "${GPG_PASSPHRASE}" \
+            --pinentry-mode loopback \
+            --armor --detach-sign \
+            --local-user "${GPG_KEY}" \
+            --output /tmp/test.sig
+          rm /tmp/test.sig
+          echo "✓ GPG setup complete and tested"
+
       - name: package
         env:
           GPG_KEY: ${{ steps.import_gpg.outputs.email }}
@@ -59,30 +98,9 @@ jobs:
           fi
           echo ${VERSION}
 
-          # Set GNUPGHOME explicitly
-          export GNUPGHOME="${HOME}/.gnupg"
-
-          # Configure GPG agent for non-interactive use
-          echo "use-agent" > "${GNUPGHOME}/gpg.conf"
-          echo "pinentry-mode loopback" >> "${GNUPGHOME}/gpg.conf"
-          echo "allow-loopback-pinentry" > "${GNUPGHOME}/gpg-agent.conf"
-          gpg-connect-agent reloadagent /bye || true
-
-          # Verify GPG setup
-          echo "Available GPG keys:"
-          gpg --list-secret-keys
-
           echo "Using GPG key: ${GPG_KEY}"
 
-          # Test GPG signing to cache passphrase
-          echo "test" | gpg --batch --yes --passphrase "${GPG_PASSPHRASE}" \
-            --pinentry-mode loopback \
-            --armor --detach-sign --local-user "${GPG_KEY}" \
-            --output /tmp/test.sig
-          rm /tmp/test.sig
-          echo "✓ GPG signing test successful"
-
-          # Create a temporary directory for packaging
+          # Create output directory
           mkdir -p packaged-plugins
 
           # Package for each platform/arch combination
@@ -115,6 +133,7 @@ jobs:
 
               # Package and sign with helm
               OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"
+              OUTPUT_PATH="${GITHUB_WORKSPACE}/packaged-plugins/${OUTPUT_NAME}"
 
               # Try helm plugin package with signing
               if helm plugin package "${PLUGIN_DIR}" \
@@ -139,9 +158,7 @@ jobs:
                 echo "Helm plugin package --sign failed, using manual GPG signing"
 
                 # Manual packaging
-                cd "${PLUGIN_DIR}"
-                tar czf "${OUTPUT_NAME}" .
-                mv "${OUTPUT_NAME}" "${GITHUB_WORKSPACE}/packaged-plugins/"
+                tar -czf "${OUTPUT_PATH}" -C "${PLUGIN_DIR}" .
                 cd "${GITHUB_WORKSPACE}"
 
                 # Manual GPG signing

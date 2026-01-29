@@ -133,7 +133,7 @@ jobs:
                 --sign \
                 --key "${GPG_KEY_EMAIL}" \
                 --keyring "${GNUPGHOME}/secring.gpg" \
-                --passphrase-file passphrase.txt 2>&1; then
+                --passphrase-file passphrase.txt 2>&1
 
                 echo "✓ Helm plugin package with signing succeeded"
 

@@ -108,34 +108,19 @@ jobs:
 
               # Package and sign with helm
               OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"
-              OUTPUT_PATH="${GITHUB_WORKSPACE}/packaged-plugins/${OUTPUT_NAME}"
 
               # Try helm plugin package with signing
               helm plugin package "${PLUGIN_DIR}" \
-                --destination packaged-plugins \
+                --destination "packaged-plugins/${OUTPUT_NAME}" \
                 --sign \
                 --key "${GPG_KEY_EMAIL}" \
                 --keyring "${GNUPGHOME}/secring.gpg" \
                 --passphrase-file passphrase.txt 2>&1
 
-                echo "✓ Helm plugin package with signing succeeded"
-
-                # Find the generated files (helm may generate different names)
-                LATEST_TGZ=$(ls -t packaged-plugins/*.tgz 2>/dev/null | head -1)
-                LATEST_PROV=$(ls -t packaged-plugins/*.tgz.prov 2>/dev/null | head -1)
-
-                # Rename to our naming convention if files were created
-                if [ -n "${LATEST_TGZ}" ] && [ -f "${LATEST_TGZ}" ]; then
-                  mv "${LATEST_TGZ}" "packaged-plugins/${OUTPUT_NAME}"
-                  if [ -n "${LATEST_PROV}" ] && [ -f "${LATEST_PROV}" ]; then
-                    mv "${LATEST_PROV}" "packaged-plugins/${OUTPUT_NAME}.prov"
-                  fi
-                fi
-
               # Cleanup temp directory
               rm -rf "${PLUGIN_DIR}"
 
-              echo "✓ Created ${OUTPUT_NAME}"
+              echo "✓ Created and signed ${OUTPUT_NAME}"
             done
           done
           rm passphrase.txt

@@ -16,17 +16,25 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version: "1.25"
+
+      - name: set up helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "latest"
+
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-      - name: Run GoReleaser
+
+      - name: Run GoReleaser (build only)
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
@@ -34,3 +42,70 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+
+      - name: package
+        env:
+          GPG_KEY: ${{ steps.import_gpg.outputs.name }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+
+          # Create a temporary directory for packaging
+          mkdir -p packaged-plugins
+
+          # Package for each platform/arch combination
+          for os in darwin linux windows; do
+            for arch in amd64 arm64; do
+              DIST_PATH="dist/helm-push_${os}_${arch}_v1"
+
+              # Check if the goreleaser dist directory exists
+              if [ ! -d "${DIST_PATH}" ]; then
+                echo "Skipping ${os}/${arch} - not built"
+                continue
+              fi
+
+              echo "Packaging ${os}/${arch}..."
+
+              # Create a temporary plugin directory with correct structure
+              PLUGIN_DIR=$(mktemp -d)
+              mkdir -p "${PLUGIN_DIR}/bin"
+
+              # Copy files from goreleaser output
+              cp "${DIST_PATH}/bin/helm-cm-push"* "${PLUGIN_DIR}/bin/"
+              cp plugin.yaml "${PLUGIN_DIR}/"
+              cp LICENSE "${PLUGIN_DIR}/"
+
+              # Update plugin.yaml version if needed
+              sed -i.bak "s/version: .*/version: \"${VERSION}\"/" "${PLUGIN_DIR}/plugin.yaml"
+              rm "${PLUGIN_DIR}/plugin.yaml.bak"
+
+              # Package and sign with helm
+              OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"
+              helm plugin package "${PLUGIN_DIR}" \
+                --destination packaged-plugins \
+                --sign \
+                --key "${GPG_KEY}"
+
+              # Rename to our naming convention
+              mv packaged-plugins/*.tgz "packaged-plugins/${OUTPUT_NAME}"
+              mv packaged-plugins/*.tgz.prov "packaged-plugins/${OUTPUT_NAME}.prov"
+
+              # Cleanup temp directory
+              rm -rf "${PLUGIN_DIR}"
+
+              echo "✓ Created ${OUTPUT_NAME}"
+            done
+          done
+
+          # List created packages
+          echo ""
+          echo "Created packages:"
+          ls -lh packaged-plugins/
+
+      - name: Upload packages to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packaged-plugins/*.tgz
+            packaged-plugins/*.tgz.prov
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

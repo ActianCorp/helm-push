@@ -40,7 +40,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --snapshot --clean
+          args: build --snapshot --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
@@ -50,7 +50,14 @@ jobs:
           GPG_KEY: ${{ steps.import_gpg.outputs.email }}
           GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
+          # Extract version from tag or use snapshot for branches
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            # For non-tag builds, use version from plugin.yaml with snapshot suffix
+            VERSION=$(grep "version:" plugin.yaml | cut -d '"' -f 2)-snapshot
+          fi
+          echo ${VERSION}
 
           # Set GNUPGHOME explicitly
           export GNUPGHOME="${HOME}/.gnupg"
@@ -103,8 +110,8 @@ jobs:
               cp LICENSE "${PLUGIN_DIR}/"
 
               # Update plugin.yaml version if needed
-              sed -i "s/version: .*/version: \"${VERSION}\"/" "${PLUGIN_DIR}/plugin.yaml"
-              sed -i "s/version: .*/version: \"${VERSION}\"/" "${PLUGIN_DIR}/testdata/plugin-helm3.yaml"
+              sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/plugin.yaml"
+              sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/testdata/plugin-helm3.yaml"
 
               # Package and sign with helm
               OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"

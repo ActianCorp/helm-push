@@ -26,7 +26,11 @@ builds:
     # Exclude windows arm builds (marked as broken by GoReleaser)
     ignore:
       - goos: windows
-        goarch: arm
+      - goos: darwin
+      - goos: linux
+        goarch: arm64
+      # - goos: windows
+      #   goarch: arm
 
 archives:
   - id: default

@@ -53,38 +53,39 @@ jobs:
           # Set GNUPGHOME explicitly
           export GNUPGHOME="${HOME}/.gnupg"
 
-          # Configure GPG for non-interactive use
-          cat > "${GNUPGHOME}/gpg.conf" <<EOF
-          use-agent
-          pinentry-mode loopback
-          batch
-          yes
-          EOF
+          # # Configure GPG for non-interactive use
+          # cat > "${GNUPGHOME}/gpg.conf" <<EOF
+          # use-agent
+          # pinentry-mode loopback
+          # batch
+          # yes
+          # EOF
 
-          cat > "${GNUPGHOME}/gpg-agent.conf" <<EOF
-          allow-loopback-pinentry
-          default-cache-ttl 34560000
-          max-cache-ttl 34560000
-          EOF
+          # cat > "${GNUPGHOME}/gpg-agent.conf" <<EOF
+          # allow-loopback-pinentry
+          # default-cache-ttl 34560000
+          # max-cache-ttl 34560000
+          # EOF
 
-          # Restart GPG agent
-          gpgconf --kill gpg-agent
-          gpg-connect-agent /bye
+          # # Restart GPG agent
+          # gpgconf --kill gpg-agent
+          # gpg-connect-agent /bye
 
-          # Export public keys to old format that Helm expects
-          echo "Exporting public keys to legacy format..."
-          gpg --export > "${GNUPGHOME}/pubring.gpg"
+          # # Export public keys to old format that Helm expects
+          # echo "Exporting public keys to legacy format..."
+          # gpg --export > "${GNUPGHOME}/pubring.gpg"
 
           # Export secret keys with passphrase
           echo "Exporting secret keys to legacy format..."
-          echo "${GPG_PASSPHRASE}" | gpg --batch --yes \
+          # echo "${GPG_PASSPHRASE}" | gpg --batch --yes \
+          echo "${GPG_PASSPHRASE}" | gpg \
             --pinentry-mode loopback \
             --passphrase-fd 0 \
             --export-secret-keys > "${GNUPGHOME}/secring.gpg"
 
           # Set proper permissions
-          chmod 600 "${GNUPGHOME}/secring.gpg"
-          chmod 644 "${GNUPGHOME}/pubring.gpg"
+          # chmod 600 "${GNUPGHOME}/secring.gpg"
+          # chmod 644 "${GNUPGHOME}/pubring.gpg"
 
           # Verify the files were created
           echo "Keyring files:"
@@ -132,12 +133,13 @@ jobs:
           ls -lah "${GNUPGHOME}/"*.gpg || echo "No .gpg files found"
           echo ""
 
-          echo "Using GPG key: ${GPG_KEY_ID}"
+          echo "Using GPG key: ${GPG_KEY_EMAIL}"
 
           # Create output directory
           mkdir -p packaged-plugins
 
           # Package for each platform/arch combination
+          echo "$GPG_PASSPHRASE" > passphrase.txt
           for os in darwin linux windows; do
             for arch in amd64 arm64; do
               DIST_PATH="dist/helm-push_${os}_${arch}_v1"
@@ -173,7 +175,9 @@ jobs:
               if helm plugin package "${PLUGIN_DIR}" \
                 --destination packaged-plugins \
                 --sign \
-                --key "${GPG_KEY_ID}" 2>&1; then
+                --key "${GPG_KEY_EMAIL}" \
+                --keyring "${GNUPGHOME}/secring.gpg" \
+                --passphrase-file passphrase.txt 2>&1; then
 
                 echo "✓ Helm plugin package with signing succeeded"
 
@@ -214,6 +218,7 @@ jobs:
               echo "✓ Created ${OUTPUT_NAME}"
             done
           done
+          rm passphrase.txt
 
           # List created packages
           echo ""

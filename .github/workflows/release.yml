@@ -7,8 +7,6 @@ on:
   push:
     tags:
       - "*"
-    branches:
-      - "packagetest"
 
 jobs:
   goreleaser:
@@ -123,7 +121,6 @@ jobs:
                 echo "✓ Helm plugin package with signing succeeded"
 
                 # Find the generated files (helm may generate different names)
-                ls -la packaged-plugins
                 LATEST_TGZ=$(ls -t packaged-plugins/*.tgz 2>/dev/null | head -1)
                 LATEST_PROV=$(ls -t packaged-plugins/*.tgz.prov 2>/dev/null | head -1)
 
@@ -148,11 +145,11 @@ jobs:
           echo "Created packages:"
           ls -lh packaged-plugins/
 
-      # - name: Upload packages to release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     files: |
-      #       packaged-plugins/*.tgz
-      #       packaged-plugins/*.prov
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload packages to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packaged-plugins/*.tgz
+            packaged-plugins/*.prov
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

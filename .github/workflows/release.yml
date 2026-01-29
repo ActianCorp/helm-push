@@ -103,8 +103,10 @@ jobs:
 
       - name: package
         env:
-          GPG_KEY: ${{ steps.import_gpg.outputs.email }}
+          GPG_KEY_ID: ${{ steps.import_gpg.outputs.keyid }}
+          GPG_KEY_EMAIL: ${{ steps.import_gpg.outputs.email }}
           GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          GNUPGHOME: /home/runner/.gnupg
         run: |
           # Extract version from tag or use snapshot for branches
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
@@ -115,7 +117,22 @@ jobs:
           fi
           echo ${VERSION}
 
-          echo "Using GPG key: ${GPG_KEY}"
+          # Debug: Check GPG keys
+          echo "=== GPG Key Information ==="
+          echo "Key ID: ${GPG_KEY_ID}"
+          echo "Key Email: ${GPG_KEY_EMAIL}"
+          echo ""
+          echo "Secret keys available:"
+          gpg --list-secret-keys
+          echo ""
+          echo "Public keys available:"
+          gpg --list-keys
+          echo ""
+          echo "Legacy keyring files:"
+          ls -lah "${GNUPGHOME}/"*.gpg || echo "No .gpg files found"
+          echo ""
+
+          echo "Using GPG key: ${GPG_KEY_ID}"
 
           # Create output directory
           mkdir -p packaged-plugins
@@ -156,7 +173,7 @@ jobs:
               if helm plugin package "${PLUGIN_DIR}" \
                 --destination packaged-plugins \
                 --sign \
-                --key "${GPG_KEY}" 2>&1; then
+                --key "${GPG_KEY_ID}" 2>&1; then
 
                 echo "✓ Helm plugin package with signing succeeded"
 
@@ -184,7 +201,7 @@ jobs:
                   --pinentry-mode loopback \
                   --armor \
                   --detach-sign \
-                  --local-user "${GPG_KEY}" \
+                  --local-user "${GPG_KEY_ID}" \
                   --output "packaged-plugins/${OUTPUT_NAME}.prov" \
                   "packaged-plugins/${OUTPUT_NAME}"
 

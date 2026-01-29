@@ -53,39 +53,12 @@ jobs:
           # Set GNUPGHOME explicitly
           export GNUPGHOME="${HOME}/.gnupg"
 
-          # # Configure GPG for non-interactive use
-          # cat > "${GNUPGHOME}/gpg.conf" <<EOF
-          # use-agent
-          # pinentry-mode loopback
-          # batch
-          # yes
-          # EOF
-
-          # cat > "${GNUPGHOME}/gpg-agent.conf" <<EOF
-          # allow-loopback-pinentry
-          # default-cache-ttl 34560000
-          # max-cache-ttl 34560000
-          # EOF
-
-          # # Restart GPG agent
-          # gpgconf --kill gpg-agent
-          # gpg-connect-agent /bye
-
-          # # Export public keys to old format that Helm expects
-          # echo "Exporting public keys to legacy format..."
-          # gpg --export > "${GNUPGHOME}/pubring.gpg"
-
           # Export secret keys with passphrase
           echo "Exporting secret keys to legacy format..."
-          # echo "${GPG_PASSPHRASE}" | gpg --batch --yes \
           echo "${GPG_PASSPHRASE}" | gpg \
             --pinentry-mode loopback \
             --passphrase-fd 0 \
             --export-secret-keys > "${GNUPGHOME}/secring.gpg"
-
-          # Set proper permissions
-          # chmod 600 "${GNUPGHOME}/secring.gpg"
-          # chmod 644 "${GNUPGHOME}/pubring.gpg"
 
           # Verify the files were created
           echo "Keyring files:"
@@ -117,23 +90,6 @@ jobs:
             VERSION=$(grep "version:" plugin.yaml | cut -d '"' -f 2)-snapshot
           fi
           echo ${VERSION}
-
-          # Debug: Check GPG keys
-          echo "=== GPG Key Information ==="
-          echo "Key ID: ${GPG_KEY_ID}"
-          echo "Key Email: ${GPG_KEY_EMAIL}"
-          echo ""
-          echo "Secret keys available:"
-          gpg --list-secret-keys
-          echo ""
-          echo "Public keys available:"
-          gpg --list-keys
-          echo ""
-          echo "Legacy keyring files:"
-          ls -lah "${GNUPGHOME}/"*.gpg || echo "No .gpg files found"
-          echo ""
-
-          echo "Using GPG key: ${GPG_KEY_EMAIL}"
 
           # Create output directory
           mkdir -p packaged-plugins
@@ -172,7 +128,7 @@ jobs:
               OUTPUT_PATH="${GITHUB_WORKSPACE}/packaged-plugins/${OUTPUT_NAME}"
 
               # Try helm plugin package with signing
-              if helm plugin package "${PLUGIN_DIR}" \
+              helm plugin package "${PLUGIN_DIR}" \
                 --destination packaged-plugins \
                 --sign \
                 --key "${GPG_KEY_EMAIL}" \
@@ -182,6 +138,7 @@ jobs:
                 echo "✓ Helm plugin package with signing succeeded"
 
                 # Find the generated files (helm may generate different names)
+                ls -la packaged-plugins
                 LATEST_TGZ=$(ls -t packaged-plugins/*.tgz 2>/dev/null | head -1)
                 LATEST_PROV=$(ls -t packaged-plugins/*.tgz.prov 2>/dev/null | head -1)
 
@@ -192,25 +149,6 @@ jobs:
                     mv "${LATEST_PROV}" "packaged-plugins/${OUTPUT_NAME}.prov"
                   fi
                 fi
-              else
-                echo "Helm plugin package --sign failed, using manual GPG signing"
-
-                # Manual packaging
-                tar -czf "${OUTPUT_PATH}" -C "${PLUGIN_DIR}" .
-                cd "${GITHUB_WORKSPACE}"
-
-                # Manual GPG signing
-                echo "${GPG_PASSPHRASE}" | gpg --batch --yes \
-                  --passphrase-fd 0 \
-                  --pinentry-mode loopback \
-                  --armor \
-                  --detach-sign \
-                  --local-user "${GPG_KEY_ID}" \
-                  --output "packaged-plugins/${OUTPUT_NAME}.prov" \
-                  "packaged-plugins/${OUTPUT_NAME}"
-
-                echo "✓ Manual signing succeeded"
-              fi
 
               # Cleanup temp directory
               rm -rf "${PLUGIN_DIR}"

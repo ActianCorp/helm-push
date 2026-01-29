@@ -9,11 +9,13 @@ Helm plugin to push chart package to [ChartMuseum](https://github.com/helm/chart
 Based on the version in `plugin.yaml`, release binary will be downloaded from GitHub:
 
 ```
-$ helm plugin install https://github.com/ActianCorp/helm-push
+$ helm plugin install https://github.com/actiancorp/helm-push
 Downloading and installing helm-push v0.11.0 ...
 https://github.com/ActianCorp/helm-push/releases/download/v0.11.2/helm-push_0.11.2_darwin_amd64.tar.gz
 Installed plugin: cm-push
 ```
+
+use `--version v0.11.1` to select a specific version and `-verify=false` to skip verification.
 
 ## Usage
 Start by adding a ChartMuseum-backed repo via Helm CLI (if not already added)

@@ -82,8 +82,8 @@ jobs:
           # Package for each platform/arch combination
           echo "$GPG_PASSPHRASE" > passphrase.txt
           for os in darwin linux windows; do
-            for arch in amd64 arm64; do
-              DIST_PATH="dist/helm-push_${os}_${arch}_v1"
+            for arch in amd64_v1 arm64_v8.0; do
+              DIST_PATH="dist/helm-push_${os}_${arch}"
 
               # Check if the goreleaser dist directory exists
               if [ ! -d "${DIST_PATH}" ]; then

@@ -107,15 +107,17 @@ jobs:
               sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/testdata/plugin-helm3.yaml"
 
               # Package and sign with helm
-              OUTPUT_NAME="helm-push_${VERSION}_${os}_${arch}.tgz"
+              OUTPUT_PATH="packaged-plugins/helm-push_v${VERSION}_${os}_${arch}"
 
               # Try helm plugin package with signing
               helm plugin package "${PLUGIN_DIR}" \
-                --destination "packaged-plugins/${OUTPUT_NAME}" \
+                --destination "${OUTPUT_PATH}" \
                 --sign \
                 --key "${GPG_KEY_EMAIL}" \
                 --keyring "${GNUPGHOME}/secring.gpg" \
                 --passphrase-file passphrase.txt 2>&1
+
+                echo "✓ Helm plugin package with signing succeeded"
 
               # Cleanup temp directory
               rm -rf "${PLUGIN_DIR}"
@@ -134,7 +136,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            packaged-plugins/*.tgz
-            packaged-plugins/*.prov
+            packaged-plugins/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

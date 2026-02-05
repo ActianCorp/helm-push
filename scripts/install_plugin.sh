@@ -42,10 +42,10 @@ url=""
 arch=""
 case $(uname -m) in
   x86_64)
-    arch="amd64_v1"
+    arch="amd64"
     ;;
   armv6*)
-    arch="armv6_v8.0"
+    arch="armv6"
     ;;
   # match every arm processor version like armv7h, armv7l and so on.
   armv7*)
@@ -62,11 +62,11 @@ esac
 
 
 if [ "$(uname)" = "Darwin" ]; then
-    url="https://github.com/actiancorp/helm-push/releases/download/v${version}/helm-push_v${version}_darwin_${arch}/cm-push-${version}.tgz"
+    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_darwin_${arch}/cm-push-v${version}.tgz"
 elif [ "$(uname)" = "Linux" ] ; then
-    url="https://github.com/actiancorp/helm-push/releases/download/v${version}/helm-push_v${version}_linux_${arch}/cm-push-${version}.tgz"
+    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_linux_${arch}/cm-push-v${version}.tgz"
 else
-    url="https://github.com/actiancorp/helm-push/releases/download/v${version}/helm-push_v${version}_windows_${arch}/cm-push-${version}.tgz"
+    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_windows_${arch}/cm-push-v${version}.tgz"
 fi
 
 echo $url

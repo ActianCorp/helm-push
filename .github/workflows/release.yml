@@ -107,7 +107,7 @@ jobs:
               sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/testdata/plugin-helm3.yaml"
 
               # Package and sign with helm
-              OUTPUT_PATH="packaged-plugins/helm-push_v${VERSION}_${os}_${arch}"
+              OUTPUT_PATH="packaged-plugins/helm-push_${VERSION}_${os}_${arch}"
 
               # Try helm plugin package with signing
               helm plugin package "${PLUGIN_DIR}" \

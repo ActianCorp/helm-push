@@ -84,5 +84,5 @@ else
 fi
 helm plugin verify "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz"
 tar xzf "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz" -C "${HELM_PLUGIN_DIR}/releases/v${version}"
-mv "${HELM_PLUGIN_DIR}/releases/v${version}/bin/helm-cm-push" "${HELM_PLUGIN_DIR}/bin/helm-cm-push" || \
-    mv "${HELM_PLUGIN_DIR}/releases/v${version}/bin/helm-cm-push.exe" "${HELM_PLUGIN_DIR}/bin/helm-cm-push"
+mv "${HELM_PLUGIN_DIR}/releases/v${version}/cm-push/bin/helm-cm-push" "${HELM_PLUGIN_DIR}/bin/helm-cm-push" || \
+    mv "${HELM_PLUGIN_DIR}/releases/v${version}/cm-push/bin/helm-cm-push.exe" "${HELM_PLUGIN_DIR}/bin/helm-cm-push"

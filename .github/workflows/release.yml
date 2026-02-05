@@ -90,6 +90,7 @@ jobs:
               fi
 
               echo "Packaging ${os}/${arch}..."
+              ARCH_SHORT=$(echo ${arch} | head -c 5)
 
               # Create a temporary plugin directory with correct structure
               PLUGIN_DIR=$(mktemp -d)
@@ -107,7 +108,7 @@ jobs:
               sed -i "s|version: .*|version: \"${VERSION}\"|" "${PLUGIN_DIR}/testdata/plugin-helm3.yaml"
 
               # Package and sign with helm
-              OUTPUT_PATH="packaged-plugins/helm-push_${VERSION}_${os}_${arch}"
+              OUTPUT_PATH="packaged-plugins/helm-push_${VERSION}_${os}_${ARCH_SHORT}"
 
               # Try helm plugin package with signing
               helm plugin package "${PLUGIN_DIR}" \

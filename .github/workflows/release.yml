@@ -131,10 +131,17 @@ jobs:
           ls -lh packaged-plugins/
 
       - name: Upload packages to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            packaged-plugins/**
-          overwrite_files: false
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+
+          for platform_dir in packaged-plugins/*/; do
+            platform=$(basename "$platform_dir")
+
+            echo "Creating release for ${platform}..."
+            gh release create "${platform}" \
+              --title "${platform}" \
+              --notes "Release for ${platform}" \
+              "${platform_dir}"/*
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

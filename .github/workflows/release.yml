@@ -117,12 +117,10 @@ jobs:
                 --keyring "${GNUPGHOME}/secring.gpg" \
                 --passphrase-file passphrase.txt 2>&1
 
-                echo "✓ Helm plugin package with signing succeeded"
-
               # Cleanup temp directory
               rm -rf "${PLUGIN_DIR}"
 
-              echo "✓ Created and signed ${OUTPUT_NAME}"
+              echo "✓ Created and signed ${OUTPUT_PATH}"
             done
           done
           rm passphrase.txt

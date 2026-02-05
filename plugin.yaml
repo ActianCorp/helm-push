@@ -12,6 +12,10 @@ runtimeConfig:
     - command: "$HELM_PLUGIN_DIR/bin/helm-cm-push"
   platformHooks:
     install:
-      - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+      - command: if [ -f "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh" ]; then
+          "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+          fi
     update:
-      - command: "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+      - command: if [ -f "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh" ]; then
+          "${HELM_PLUGIN_DIR}/scripts/install_plugin.sh"
+          fi

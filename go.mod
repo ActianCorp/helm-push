@@ -5,8 +5,8 @@ go 1.25.9
 require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/spf13/cobra v1.10.2
-	helm.sh/helm/v3 v3.20.1
-	helm.sh/helm/v4 v4.1.3
+	helm.sh/helm/v3 v3.20.2
+	helm.sh/helm/v4 v4.1.4
 )
 
 require (

@@ -72,7 +72,7 @@ fi
 echo $url
 
 mkdir -p "${HELM_PLUGIN_DIR}/bin"
-mkdir -p "${HELM_PLUGIN_DIR}/releases/v${version}"
+mkdir -p "${HELM_PLUGIN_DIR}/releases/${version}"
 
 # Download with curl if possible.
 if [ -x "$(which curl 2>/dev/null)" ]; then

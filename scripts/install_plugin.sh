@@ -62,11 +62,11 @@ esac
 
 
 if [ "$(uname)" = "Darwin" ]; then
-    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_darwin_${arch}/cm-push-v${version}.tgz"
+    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_darwin_${arch}/cm-push-${version}.tgz"
 elif [ "$(uname)" = "Linux" ] ; then
-    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_linux_${arch}/cm-push-v${version}.tgz"
+    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_linux_${arch}/cm-push-${version}.tgz"
 else
-    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_windows_${arch}/cm-push-v${version}.tgz"
+    url="https://github.com/actiancorp/helm-push/releases/download/helm-push_v${version}_windows_${arch}/cm-push-v{version}.tgz"
 fi
 
 echo $url
@@ -76,13 +76,13 @@ mkdir -p "${HELM_PLUGIN_DIR}/releases/v${version}"
 
 # Download with curl if possible.
 if [ -x "$(which curl 2>/dev/null)" ]; then
-    curl -sSL "${url}" -o "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz"
-    curl -sSL "${url}.prov" -o "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz.prov"
+    curl -sSL "${url}" -o "${HELM_PLUGIN_DIR}/releases/cm-push-${version}.tgz"
+    curl -sSL "${url}.prov" -o "${HELM_PLUGIN_DIR}/releases/cm-push-${version}.tgz.prov"
 else
-    wget -q "${url}" -O "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz"
-    wget -q "${url}.prov" -O "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz.prov"
+    wget -q "${url}" -O "${HELM_PLUGIN_DIR}/releases/cm-push-${version}.tgz"
+    wget -q "${url}.prov" -O "${HELM_PLUGIN_DIR}/releases/cm-push-${version}.tgz.prov"
 fi
 #helm plugin verify "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz"
-tar xzf "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz" -C "${HELM_PLUGIN_DIR}/releases/v${version}"
+tar xzf "${HELM_PLUGIN_DIR}/releases/cm-push-v${version}.tgz" -C "${HELM_PLUGIN_DIR}/releases/${version}"
 mv "${HELM_PLUGIN_DIR}/releases/v${version}/cm-push/bin/helm-cm-push" "${HELM_PLUGIN_DIR}/bin/helm-cm-push" || \
     mv "${HELM_PLUGIN_DIR}/releases/v${version}/cm-push/bin/helm-cm-push.exe" "${HELM_PLUGIN_DIR}/bin/helm-cm-push"
